@@ -318,21 +318,25 @@ module.exports = (db, name, opts) => {
   function destroy(req, res, next) {
     let resource
 
-    if (opts._isFake) {
-      resource = db.get(name).value()
-    } else {
-      resource = db
-        .get(name)
-        .removeById(req.params.id)
-        .value()
-
-      // Remove dependents documents
-      const removable = db._.getRemovable(db.getState(), opts)
-      removable.forEach(item => {
-        db.get(item.name)
-          .removeById(item.id)
+    try {
+      if (opts._isFake) {
+        resource = db.get(name).value()
+      } else {
+        resource = db
+          .get(name)
+          .removeById(req.params.id)
           .value()
-      })
+
+        // Remove dependents documents
+        const removable = db._.getRemovable(db.getState(), opts)
+        removable.forEach(item => {
+          db.get(item.name)
+            .removeById(item.id)
+            .value()
+        })
+      }
+    } catch (error) {
+      // If the mock data doesn't exist, don't worry about it.
     }
 
     if (resource) {

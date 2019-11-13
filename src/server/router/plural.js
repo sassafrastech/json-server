@@ -231,6 +231,7 @@ module.exports = (db, name, opts) => {
   function show(req, res, next) {
     const _embed = req.query._embed
     const _expand = req.query._expand
+
     const resource = db
       .get(name)
       .getById(req.params.id)
@@ -249,6 +250,8 @@ module.exports = (db, name, opts) => {
       expand(clone, _expand)
 
       res.locals.data = clone
+    } else {
+      return stub(res, next)
     }
 
     next()
@@ -256,6 +259,8 @@ module.exports = (db, name, opts) => {
 
   // POST /name
   function create(req, res, next) {
+    return stub(res, next)
+
     let resource
     if (opts._isFake) {
       const id = db
@@ -282,6 +287,8 @@ module.exports = (db, name, opts) => {
   // PUT /name/:id
   // PATCH /name/:id
   function update(req, res, next) {
+    return stub(res, next)
+
     const id = req.params.id
     let resource
 
@@ -316,6 +323,8 @@ module.exports = (db, name, opts) => {
 
   // DELETE /name/:id
   function destroy(req, res, next) {
+    return stub(res, next)
+
     let resource
 
     if (opts._isFake) {
@@ -339,6 +348,12 @@ module.exports = (db, name, opts) => {
       res.locals.data = {}
     }
 
+    next()
+  }
+
+  // If the mock data doesn't exist, don't worry about it.
+  function stub(res, next) {
+    res.locals.data = { stub: true }
     next()
   }
 

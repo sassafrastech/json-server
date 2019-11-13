@@ -231,10 +231,15 @@ module.exports = (db, name, opts) => {
   function show(req, res, next) {
     const _embed = req.query._embed
     const _expand = req.query._expand
-    const resource = db
-      .get(name)
-      .getById(req.params.id)
-      .value()
+
+    try {
+      const resource = db
+        .get(name)
+        .getById(req.params.id)
+        .value()
+    } catch (error) {
+      return ignoreMissingData(next)
+    }
 
     if (resource) {
       // Clone resource to avoid making changes to the underlying object
@@ -286,10 +291,14 @@ module.exports = (db, name, opts) => {
     let resource
 
     if (opts._isFake) {
-      resource = db
-        .get(name)
-        .getById(id)
-        .value()
+      try {
+        resource = db
+          .get(name)
+          .getById(id)
+          .value()
+      } catch (error) {
+        return ignoreMissingData(next)
+      }
 
       if (req.method === 'PATCH') {
         resource = { ...resource, ...req.body }
@@ -321,10 +330,14 @@ module.exports = (db, name, opts) => {
     if (opts._isFake) {
       resource = db.get(name).value()
     } else {
-      resource = db
-        .get(name)
-        .removeById(req.params.id)
-        .value()
+      try {
+        resource = db
+          .get(name)
+          .removeById(req.params.id)
+          .value()
+      } catch (error) {
+        return ignoreMissingData(next)
+      }
 
       // Remove dependents documents
       const removable = db._.getRemovable(db.getState(), opts)
@@ -339,6 +352,12 @@ module.exports = (db, name, opts) => {
       res.locals.data = {}
     }
 
+    next()
+  }
+
+  // If the mock data doesn't exist, don't worry about it.
+  function ignoreMissingData(next) {
+    res.locals.data = { stub: true }
     next()
   }
 

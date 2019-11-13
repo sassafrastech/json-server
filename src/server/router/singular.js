@@ -58,6 +58,8 @@ module.exports = (db, name, opts) => {
     .post(create, w)
     .put(update, w)
     .patch(update, w)
+    // Allow deleting non-RESTfully
+    .delete(show)
 
   return router
 }

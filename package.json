@@ -111,9 +111,7 @@
     "node": ">=8"
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "npm test"
-    }
+    "hooks": {}
   },
   "jest": {
     "testURL": "http://localhost/"
